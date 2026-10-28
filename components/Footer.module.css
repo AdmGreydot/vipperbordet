@@ -1,0 +1,12 @@
+.wrap{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+}
+.footer{
+    padding: 40px 0;
+}
+.footer a:hover{
+    color: var(--accent);
+}

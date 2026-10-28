@@ -1,0 +1,20 @@
+.wrap{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.item{
+    display: flex;
+    max-width: 200px;
+    align-items: center;
+    gap: 20px;
+}
+.item p {
+    flex: 1;
+}
+.item svg{
+    width: 40px;
+    height: 40px;
+}

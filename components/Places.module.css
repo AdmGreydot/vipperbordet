@@ -1,0 +1,16 @@
+.head{
+    max-width: 730px;
+    margin: 0 auto 24px;
+    text-align: center;
+}
+.head p{
+    max-width: 679px;
+}
+.imageGroup{
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 30px;
+}
+.imageGroup p{
+    text-align: center;
+}

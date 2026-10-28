@@ -1,0 +1,24 @@
+.image{
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+    height: 300px;
+}
+.textInside img{
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.text{
+    background-color: var(--accent);
+    color: var(--white);
+    padding: 13px 30px;
+    height: 100%;
+}
+.textInside .text{
+    position: absolute;
+    bottom: 0;
+    height: auto;
+    width: 100%;
+    background: rgb(from var(--accent) r g b / 73%);
+}

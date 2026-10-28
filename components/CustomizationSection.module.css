@@ -1,0 +1,21 @@
+.content{
+    max-width: 412px;
+    margin-left: auto;
+    padding: 60px 20px;
+    background-color: var(--background);
+}
+.design{
+    height: 433px;
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+.design img{
+    position: absolute;
+    width: 55vw;
+    height: 100%;
+    left: 0;
+    top: 0;
+    z-index: -1;
+    object-fit: cover;
+}

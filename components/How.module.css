@@ -1,0 +1,14 @@
+.wrap{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.content{
+    flex: 0 0 35%;
+}
+.imageGroup{
+    flex: 0 0 50%;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+}

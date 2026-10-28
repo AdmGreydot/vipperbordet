@@ -1,0 +1,34 @@
+.hero{
+    position: relative;
+    margin-top: -90px;
+    padding: 120px 0 46px;
+    color: var(--white);
+}
+.hero img{
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    object-fit: cover;
+    height: 100%;
+    z-index: -1;
+}
+.hero h1{
+    color: var(--white);
+    max-width: 372px;
+    margin-bottom: 16px;
+}
+.accent{
+    transform: rotate(-10deg);
+    font-family: var(--font-kalam);
+    font-size: 106px;
+    font-weight: 700;
+}
+.group{
+    max-width: 500px;
+    width: 100%;
+    margin-bottom: 82px;
+}
+.arrow{
+    margin: 5px auto 23px;
+}
