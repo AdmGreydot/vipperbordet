@@ -7,6 +7,19 @@ import QuantityInput from './controls/QuantityInput';
 import Select from './controls/Select';
 import Textarea from './controls/Textarea';
 export default function OrderForm(){
+    const [quantity, setQuantity] = useState(50);
+    const step=10;
+    const decrease = () => {
+        setQuantity((prev) => Math.max(50, prev - step));
+    };
+
+    const increase = () => {
+        setQuantity((prev) => prev + step);
+    };
+    const addQuantity = (quantity:number) => {
+        setQuantity(quantity);
+    };
+    const [isRepeatOrder, setIsRepeatOrder] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [errors, setErrors] = useState<string[]>([]);
     const [isSuccess, setIsSuccess] = useState(false);
@@ -71,12 +84,22 @@ export default function OrderForm(){
             setIsLoading(false);
         }
     }
+    function calculatePrise(){
+        let prise = 0;
+        if(!isRepeatOrder){
+            prise+=150;
+        }
+        if(quantity>0){
+            prise+=quantity*3.5;
+        }
+        return prise;
+    }
     return (
         <section className={classes.bestil}>
             <div className="container">
                 <div className={classes.formWrapper}>
                     <div className={classes.head}>
-                        <h2>Bestil jeres bordkiler</h2>
+                        <h2 id="bestil">Bestil jeres bordkiler</h2>
                         <p>Vælg farve, tekst og antal – så er I klar til bestilling.</p>
                     </div>
                     <form onSubmit={submitHandler}>
@@ -130,10 +153,46 @@ export default function OrderForm(){
                                     ]
                                 }
                             />
-                            <QuantityInput label="Antal" required name="quantity"/>
+                            <QuantityInput label="Antal" required name="quantity" quantity={quantity} increase={increase} decrease={decrease} addQuantity={addQuantity}/>
                         </div>
                         <Textarea label="Kommentar" name='kommentar'/>
+                        <fieldset className={classes.orderType}>
+                            <legend>Er dette en genbestilling?</legend>
+
+                            <div className={classes.row}>
+                                <label className={classes.radioOption}>
+                                    <input
+                                        type="radio"
+                                        name="order"
+                                        value="first"
+                                        checked={!isRepeatOrder}
+                                        onChange={() => setIsRepeatOrder(false)}
+                                    />
+                                    <span>Nej, det er vores første bestilling</span>
+                                </label>
+
+                                <label className={classes.radioOption}>
+                                    <input
+                                        type="radio"
+                                        name="order"
+                                        value="repeat"
+                                        checked={isRepeatOrder}
+                                        onChange={() => setIsRepeatOrder(true)}
+                                    />
+                                    <span>Ja, det er en genbestilling</span>
+                                </label>
+                            </div>
+                        </fieldset>
                         <div className={classes.footer}>
+                            <div className={classes.pris}>
+                                <div>
+                                    <h4>Pris i alt</h4>
+                                    <p>Ekskl. moms</p>
+                                </div>
+                                <h2>
+                                    {calculatePrise()} kr.
+                                </h2>
+                            </div>
                             <button type='submit' className={`btn ${classes.button}`} disabled={isLoading}>Bestil bordkiler</button>
                         </div>
                     </form>

@@ -2,6 +2,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    flex-wrap: wrap;
 }
 .content{
     flex: 0 0 35%;
@@ -11,4 +12,13 @@
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 15px;
+}
+@media (max-width: 800px) {
+    .content{
+        margin-bottom: 40px;
+        flex: 0 0 100%;
+    }
+    .imageGroup{
+        flex: 0 0 100%;
+    }
 }

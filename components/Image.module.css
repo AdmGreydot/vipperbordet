@@ -2,6 +2,10 @@
     border-radius: 10px;
     overflow: hidden;
     position: relative;
+    display: flex;
+    flex-direction: column;
+}
+.textInside{
     height: 300px;
 }
 .textInside img{
@@ -21,4 +25,13 @@
     height: auto;
     width: 100%;
     background: rgb(from var(--accent) r g b / 73%);
+}
+
+@media (max-width: 400px) {
+    .text{
+        padding: 13px;
+    }
+    .textInside{
+        height: 200px;
+    }
 }

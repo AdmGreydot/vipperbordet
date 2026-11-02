@@ -1,24 +1,15 @@
-"use client";
-
-import { useState } from "react";
 import classes from './Control.module.css';
 type InputProps = {
     label:string,
     required:boolean,
-    name:string
+    name:string,
+    quantity:number,
+    increase:()=>void,
+    decrease:()=>void,
+    addQuantity:(quantity:number)=>void
 };
 
-export default function QuantityInput({label, required, name}:InputProps) {
-  const [quantity, setQuantity] = useState(50);
-  const step=10;
-  const decrease = () => {
-    setQuantity((prev) => Math.max(50, prev - step));
-  };
-
-  const increase = () => {
-    setQuantity((prev) => prev + step);
-  };
-
+export default function QuantityInput({label, required, name, quantity, increase, decrease, addQuantity}:InputProps) {
   return (
     <div className={classes.control}>
         <label>
@@ -36,7 +27,7 @@ export default function QuantityInput({label, required, name}:InputProps) {
             <input
                 type="number"
                 value={quantity}
-                onChange={(e) => setQuantity(Number(e.target.value))}
+                onChange={(e) => addQuantity(Number(e.target.value))}
                 min="50"
                 name={name}
             />

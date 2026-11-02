@@ -13,13 +13,26 @@
 }
 .row{
     display: grid;
+    flex-direction: column;
     grid-template-columns: repeat(2, minmax(0,1fr));
     gap: 15px;
+}
+.pris{
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap:20px;
+  padding-top: 10px;
+  border-top:1px solid var(--border);
+  margin-bottom: 20px;
+
 }
 .footer{
     margin-top: 39px;
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    align-items: center;
 }
 
 .errors {
@@ -30,19 +43,19 @@
     background: #fcf6f4;
   
     color: #8b3f38;
-  }
+}
   
-  .errors p {
+.errors p {
     margin: 0;
     font-size: 14px;
     line-height: 1.5;
-  }
+}
   
-  .errors p + p {
+.errors p + p {
     margin-top: 3px;
-  }
+}
 
-  .success {
+.success {
     margin-bottom: 24px;
     padding: 18px 20px;
   
@@ -50,16 +63,89 @@
     background: #f4f7ed;
   
     color: #3f4a32;
-  }
+}
   
-  .successTitle {
+.successTitle {
     margin: 0 0 4px;
     font-size: 17px;
     font-weight: 600;
-  }
+}
   
-  .success p:last-child {
+.success p:last-child {
     margin: 0;
     font-size: 14px;
     line-height: 1.5;
+}
+.orderType legend{
+  margin-bottom: 15px;
+}
+.orderType legend, .orderType label{
+      font-size: 16px;
+      font-weight: 400;
+}
+
+.radioOption {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: #F5F1E8;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+  font-size: 14px;
+}
+
+.radioOption input {
+  appearance: none;
+  -webkit-appearance: none;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  border: 2px solid #B8B3A6;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.radioOption input:checked {
+  border-color: #122D28;
+  background: radial-gradient(
+      circle,
+      var(--white) 0 4px,
+      var(--accent) 4.5px
+  );
+}
+.radioOption:has(input:checked) {
+  background: #EAF0DF;
+  border-color: #EAF0DF;
+}
+
+.radioOption:hover {
+  border-color: #A5B58A;
+}
+
+.radioOption input:focus-visible {
+  outline: 2px solid #7FB239;
+  outline-offset: 3px;
+}
+
+@media (max-width: 900px) {
+  .formWrapper{
+    padding: 50px;
   }
+}
+@media (max-width: 560px) {
+  .formWrapper{
+    padding: 20px;
+  }
+}
+@media (max-width: 400px) {
+  .row{
+    grid-template-columns: repeat(1, minmax(0,1fr));
+    gap: 0;
+  }
+}

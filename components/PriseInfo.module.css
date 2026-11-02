@@ -1,0 +1,41 @@
+.wrap{
+    background-color: #EFE6DD;
+    border-radius: 10px;
+    padding: 20px;
+    margin-top: 30px;
+}
+.head{
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+.head h4{
+    flex:1;
+}
+.item{
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+    align-items: center;
+    margin-bottom: 15px;
+}
+.amount{
+    font-weight: 700;
+    font-size: 20px;
+    white-space: nowrap;
+}
+.footer{
+    display: flex;
+    gap: 20px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+    font-size: 14px;
+}
+.footer svg{
+    width: 20px;
+    height: 20px;
+}
+.footer p{
+    flex: 1;
+}

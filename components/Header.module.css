@@ -1,3 +1,6 @@
+.header{
+    z-index: 3;
+}
 .logo{
     display: block;
     width: 70px;

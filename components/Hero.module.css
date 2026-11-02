@@ -32,3 +32,12 @@
 .arrow{
     margin: 5px auto 23px;
 }
+
+@media (max-width: 560px) {
+    .accent{
+        font-size: 56px;
+    }
+    .arrow{
+        transform: translateX(-200%);
+    }
+}
