@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useRef  } from 'react';
 import classes from './OrderForm.module.css';
 import Input from './controls/Input';
 import QuantityInput from './controls/QuantityInput';
 import Select from './controls/Select';
 import Textarea from './controls/Textarea';
 export default function OrderForm(){
+    const successRef = useRef<HTMLDivElement>(null);
     const [quantity, setQuantity] = useState(50);
     const step=10;
     const decrease = () => {
@@ -28,6 +29,9 @@ export default function OrderForm(){
         const form = e.currentTarget;
         const formData = new FormData(form);
         const companyName = formData.get("company_name") as string;
+        const adresse = formData.get("adresse") as string;
+        const postnumber = formData.get("postnumber") as string;
+        const city = formData.get("city") as string;
         const contactName = formData.get("contact_name") as string;
         const email = formData.get("email") as string;
         const textKilen = formData.get("text_kilen") as string;
@@ -37,11 +41,20 @@ export default function OrderForm(){
         let errorsArr:string[]=[];
         setIsSuccess(false);
         setErrors([]);
-        if(companyName.trim().length === 0 || contactName.trim().length === 0 || email.trim().length === 0 || textKilen.trim().length === 0 || color.trim().length === 0 || quantity.trim().length === 0){
+        if(companyName.trim().length === 0 || contactName.trim().length === 0 || email.trim().length === 0 || textKilen.trim().length === 0 || color.trim().length === 0 || adresse.trim().length === 0 || postnumber.trim().length === 0 || city.trim().length === 0 || quantity.trim().length === 0){
             errorsArr.push('Du har ikke udfyldt alle obligatoriske felter.');
         }
         if (!emailRegex.test(email)) {
             errorsArr.push('Indtast en gyldig e-mailadresse');
+        }
+        const quantityValue = Number(quantity);
+
+        if (
+            !Number.isInteger(quantityValue) ||
+            quantityValue < 50 ||
+            quantityValue % 10 !== 0
+        ) {
+            errorsArr.push('Antallet skal være mindst 50 og kunne deles med 10.');
         }
         if(errorsArr.length>0){
             setErrors(errorsArr);
@@ -52,14 +65,19 @@ export default function OrderForm(){
             companyName,
             contactName,
             email,
+            adresse,
+            postnumber,
+            city,
+            cvr: formData.get("cvr") as string,
             phone: formData.get("phone") as string,
             textKilen,
             color,
-            quantity,
+            quantity: quantityValue,
+            isRepeatOrder,
             kommentar: formData.get("kommentar") as string,
         }
         try {
-            const response = await fetch('/api/send-email', {
+            const response = await fetch('/api/orders', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -68,14 +86,32 @@ export default function OrderForm(){
             });
             
             const result = await response.json();
-            if (!response.ok) {
-                setErrors(['Der opstod en fejl. Prøv venligst igen, eller kontakt os direkte på email.']);
-                console.error('Failed to send email:', result.error);
+            if (!response.ok || !result.success) {
+                setErrors([
+                    'Der opstod en fejl. Prøv venligst igen, eller kontakt os direkte på email.'
+                ]);
+                console.error('Order error:', result.error);
                 return;
             }
-        
+            
+            if (!result.customerEmailSent) {
+                setErrors([
+                    'Bestillingen er modtaget, men fakturaen kunne ikke sendes. Kontakt os venligst.'
+                ]);
+                console.error('Customer email was not sent');
+                return;
+            }
+            
             setIsSuccess(true);
             form.reset();
+            setQuantity(50);
+            setIsRepeatOrder(false);
+            setTimeout(() => {
+                successRef.current?.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center',
+                });
+            }, 100);
 
         } catch (error) {
             setErrors(['Der opstod en fejl. Prøv venligst igen, eller kontakt os direkte på email.']);
@@ -100,7 +136,7 @@ export default function OrderForm(){
                 <div className={classes.formWrapper}>
                     <div className={classes.head}>
                         <h2 id="bestil">Bestil jeres bordkiler</h2>
-                        <p>Vælg farve, tekst og antal – så er I klar til bestilling.</p>
+                        <p>Vi har modtaget jeres bestilling. I modtager snart en faktura via e-mail.</p>
                     </div>
                     <form onSubmit={submitHandler}>
                         {errors.length > 0 && (
@@ -111,19 +147,26 @@ export default function OrderForm(){
                             </div>
                         )}
                         {isSuccess && (
-                        <div className={classes.success}>
+                        <div ref={successRef} className={classes.success}>
                             <p className={classes.successTitle}>Tak for jeres bestilling!</p>
                             <p>Vi har modtaget jeres bestilling og vender tilbage hurtigst muligt.</p>
                         </div>
                         )}
+                        
                         <div className={classes.row}>
                             <Input label="Navn på virksomhed" type="text" name="company_name" required/>
-                            <Input label="Kontaktperson" type="text" name="contact_name" required/>
+                            <Input label="CVR-nummer" type="text" name="cvr"/>
+                        </div>
+                        <Input label="Virksomhedens adresse" type="text" name="adresse" required/>
+                        <div className={classes.row}>
+                            <Input label="Postnummer" type="text" name="postnumber" required/>
+                            <Input label="By" type="text" name="city" required/>
                         </div>
                         <div className={classes.row}>
-                            <Input label="E-mail" type="email" name="email" required/>
+                            <Input label="Kontaktperson" type="text" name="contact_name" required/>
                             <Input label="Telefon" type="tel" name="phone"/>
                         </div>
+                        <Input label="E-mail" type="email" name="email" required/>
                         <Input label="Tekst på bordkilen( fx. jeres navn)" type="text" name="text_kilen" required/>
                         <div className={classes.row}>
                             <Select 
@@ -187,7 +230,7 @@ export default function OrderForm(){
                             <div className={classes.pris}>
                                 <div>
                                     <h4>Pris i alt</h4>
-                                    <p>Ekskl. moms</p>
+                                    <p>Inkl. moms</p>
                                 </div>
                                 <h2>
                                     {calculatePrise()} kr.

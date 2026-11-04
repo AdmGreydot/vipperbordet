@@ -37,7 +37,7 @@
     .accent{
         font-size: 56px;
     }
-    .arrow{
-        transform: translateX(-200%);
+    .group{
+        max-width: 250px;
     }
 }

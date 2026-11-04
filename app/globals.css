@@ -126,6 +126,23 @@ section:last-of-type{
 .btn-white:hover{
   color: var(--white);
 }
+:focus {
+  outline: none;
+}
+
+:focus-visible {
+  outline: 1px solid #065446;
+  outline-offset: 2px;
+}
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 1000px #F2EEE6 inset !important;
+    -webkit-text-fill-color: #122D28 !important;
+    caret-color: #122D28;
+    transition: background-color 9999s ease-in-out 0s;
+}
 
 @media (max-width: 800px) {
   section{

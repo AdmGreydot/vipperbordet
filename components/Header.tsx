@@ -7,8 +7,9 @@ export default function Header(){
                 <div className={classes.wrap}>
                     <Link href="/" className={classes.logo}>
                         <img src="/logo.png" alt="Vipperbordet"/>
+                        <p>Vipperbordet</p>
                     </Link>
-                    <a href='/#bestil' className='btn btn-white'>Bestil</a>
+                    <a href='/#bestil' className={`btn btn-white ${classes.button}`}>Bestil bordkiler →</a>
                 </div>
             </div>
         </header>
