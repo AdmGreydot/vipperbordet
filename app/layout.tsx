@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Kalam, Libertinus_Serif, Libre_Baskerville } from "next/font/google";
+import { Kalam, Libertinus_Serif } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -14,19 +14,16 @@ const libertinusSerif = Libertinus_Serif({
   variable: "--font-libertinus",
   subsets: ["latin"],
 });
-const libreBaskerville = Libre_Baskerville({
-  variable: "--font-libre",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
-  title: "Vipperbordet",
-  description: "En lille løsning når bordet vipper",
+  title: "Vipperbordet – Stabilitet til borde i caféer og restauranter",
+  description:
+    "Undgå borde, der vipper. Bestil praktiske bordkiler til caféer, restauranter, hoteller og virksomheder.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${kalamFont.variable} ${libertinusSerif.variable} ${libreBaskerville.variable}`}>
+    <html lang="da" className={`${kalamFont.variable} ${libertinusSerif.variable}`}>
       <body>
         <Header/>
         {children}

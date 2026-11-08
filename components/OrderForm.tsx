@@ -136,7 +136,7 @@ export default function OrderForm(){
                 <div className={classes.formWrapper}>
                     <div className={classes.head}>
                         <h2 id="bestil">Bestil jeres bordkiler</h2>
-                        <p>Vi har modtaget jeres bestilling. I modtager snart en faktura via e-mail.</p>
+                        <p>Vælg farve, tekst og antal – så er I klar til bestilling.</p>
                     </div>
                     <form onSubmit={submitHandler}>
                         {errors.length > 0 && (
@@ -149,7 +149,7 @@ export default function OrderForm(){
                         {isSuccess && (
                         <div ref={successRef} className={classes.success}>
                             <p className={classes.successTitle}>Tak for jeres bestilling!</p>
-                            <p>Vi har modtaget jeres bestilling og vender tilbage hurtigst muligt.</p>
+                            <p>Vi har modtaget jeres bestilling. I modtager snart en faktura via e-mail.</p>
                         </div>
                         )}
                         

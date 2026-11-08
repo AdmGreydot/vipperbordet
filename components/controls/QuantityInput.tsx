@@ -30,6 +30,7 @@ export default function QuantityInput({label, required, name, quantity, increase
                 onChange={(e) => addQuantity(Number(e.target.value))}
                 min="50"
                 name={name}
+                required={required}
             />
 
             <button type="button" onClick={increase}>

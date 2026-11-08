@@ -20,7 +20,7 @@
 }
 .accent{
     transform: rotate(-10deg);
-    font-family: var(--font-kalam);
+    font-family: var(--font-kalam), cursive;
     font-size: 106px;
     font-weight: 700;
 }
