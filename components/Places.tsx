@@ -5,8 +5,8 @@ export default function Places(){
         <section>
             <div className="container">
                 <div className={classes.head}>
-                    <h2>En lille løsning når bordet vipper</h2>
-                    <p>Uanset om I driver café, restaurant, bar, hotel eller et andet sted med mange borde, gør bordkilen det nemt at få styr på de borde, der ikke står helt stabilt.</p>
+                    <h2>Hvor gør en bordkile gavn?</h2>
+                    <p>Uanset om I driver café, restaurant, bar eller hotel, er det rart at have en bordkile i nærheden, når et bord pludselig begynder at vippe.</p>
                 </div>
                 <div className={classes.imageGroup}>
                     <Image src="/images/place1.png" textInside={true}>

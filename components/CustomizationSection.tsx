@@ -7,7 +7,7 @@ export default function CustomizationSection(){
             <div className="container">
                 <div className={classes.content}>
                     <h2>Gør bordkilen til jeres egen</h2>
-                    <p>Vi trykker jeres navn eller korte tekst direkte på bordkilen. En diskret og praktisk detalje, der passer til jeres sted. </p>
+                    <p>Vi trykker jeres navn eller logo på den ene side og vores Greydot-logo på den anden. En diskret og praktisk detalje, der passer til jeres sted.</p>
                     <PriseInfo/>
                 </div>
             </div>
