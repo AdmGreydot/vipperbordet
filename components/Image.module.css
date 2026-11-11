@@ -1,37 +1,47 @@
-.image{
+.image {
     border-radius: 10px;
     overflow: hidden;
     position: relative;
     display: flex;
     flex-direction: column;
 }
-.textInside{
+
+.textInside {
     height: 300px;
 }
-.textInside img{
+
+.imageTag {
+    display: block;
     width: 100%;
-    height: 100%;
+    height: auto;
+}
+
+.textInside .imageTag {
     object-fit: cover;
 }
-.text{
+
+.text {
     background-color: var(--accent);
     color: var(--white);
     padding: 13px 30px;
     height: 100%;
 }
-.textInside .text{
+
+.textInside .text {
     position: absolute;
     bottom: 0;
     height: auto;
     width: 100%;
+    box-sizing: border-box;
     background: rgb(from var(--accent) r g b / 73%);
 }
 
 @media (max-width: 400px) {
-    .text{
+    .text {
         padding: 13px;
     }
-    .textInside{
+
+    .textInside {
         height: 200px;
     }
 }

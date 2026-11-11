@@ -1,9 +1,17 @@
+import Image from 'next/image';
 import classes from './CustomizationSection.module.css';
 import PriseInfo from './PriseInfo';
 export default function CustomizationSection(){
     return (
         <section className={classes.design}>
-            <img src="/images/design.png" alt="" />
+             <Image
+                src="/images/design.png"
+                alt="Wooden table wedge"
+                width={1200}
+                height={900}
+                sizes="(max-width: 800px) 100vw, 55vw"
+                className={classes.designImage}
+            />
             <div className="container">
                 <div className={classes.content}>
                     <h2>Gør bordkilen til jeres egen</h2>

@@ -1,16 +1,18 @@
-.content{
+.content {
     max-width: 450px;
     margin-left: auto;
     padding: 60px 20px;
     background-color: var(--background);
 }
-.design{
+
+.design {
     height: 433px;
     position: relative;
     display: flex;
     align-items: center;
 }
-.design img{
+
+.designImage {
     position: absolute;
     width: 55vw;
     height: 100%;
@@ -19,17 +21,20 @@
     z-index: -1;
     object-fit: cover;
 }
+
 @media (max-width: 800px) {
-    .design{
+    .design {
         height: auto;
         flex-direction: column-reverse;
     }
-    .design img{
-        position: unset;
+
+    .designImage {
+        position: static;
         width: 100%;
-        height: 200px;
+        height: 400px;
     }
-    .content{
+
+    .content {
         padding: 0;
         margin-bottom: 40px;
         max-width: 100%;

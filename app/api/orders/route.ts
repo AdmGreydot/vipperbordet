@@ -1,3 +1,4 @@
+
 import { Resend } from 'resend';
 import React from 'react';
 import { NextResponse } from 'next/server';
@@ -8,6 +9,12 @@ import InvoiceDocument, {
 } from '@/lib/invoice/InvoiceDocument';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
+
+const BRAND_NAME = 'Vipperbordet';
+const CONTACT_EMAIL = 'kontakt@greydot.dk';
+const SENDER_EMAIL = 'noreply@greydot.dk';
+const WEBSITE_URL = 'https://vipperbordet.dk';
+const CONTACT_PHONE = '+45 22 58 41 42';
 
 const escapeHtml = (value: unknown): string =>
   String(value ?? '-')
@@ -22,6 +29,35 @@ const formatPrice = (ore: number) =>
     style: 'currency',
     currency: 'DKK',
   }).format(ore / 100);
+
+const renderRows = (rows: [string, string][]) =>
+  rows
+    .map(
+      ([label, value]) => `
+        <tr>
+          <td style="
+            padding: 12px 0;
+            border-bottom: 1px solid #EAE9E5;
+            color: #888888;
+            width: 42%;
+            vertical-align: top;
+          ">
+            ${escapeHtml(label)}
+          </td>
+          <td style="
+            padding: 12px 0;
+            border-bottom: 1px solid #EAE9E5;
+            color: #303B37;
+            font-weight: bold;
+            vertical-align: top;
+            word-break: break-word;
+          ">
+            ${escapeHtml(value)}
+          </td>
+        </tr>
+      `
+    )
+    .join('');
 
 export async function POST(request: Request) {
   try {
@@ -43,7 +79,7 @@ export async function POST(request: Request) {
       kommentar,
     } = body;
 
-    // Basic server-side validation
+    // Validate required fields
     const requiredFields = [
       companyName,
       contactName,
@@ -125,52 +161,53 @@ export async function POST(request: Request) {
     }
 
     const {
-        order_id,
-        invoice_id,
-        invoice_number,
-        subtotal_ore,
-        vat_ore,
-        total_ore,
+      order_id,
+      invoice_id,
+      invoice_number,
+      subtotal_ore,
+      vat_ore,
+      total_ore,
     } = orderResult;
+
     // Get invoice dates from database
     const { data: invoice, error: invoiceError } = await supabaseAdmin
-    .from('invoices')
-    .select('invoice_number, invoice_date, due_date')
-    .eq('id', invoice_id)
-    .single();
+      .from('invoices')
+      .select('invoice_number, invoice_date, due_date')
+      .eq('id', invoice_id)
+      .single();
 
     if (invoiceError || !invoice) {
-    console.error('Invoice fetch error:', invoiceError);
+      console.error('Invoice fetch error:', invoiceError);
 
-    return NextResponse.json(
-    { error: 'Could not retrieve invoice details.' },
-    { status: 500 }
-    );
+      return NextResponse.json(
+        { error: 'Could not retrieve invoice details.' },
+        { status: 500 }
+      );
     }
 
     const formatDate = (date: string) =>
-    new Intl.DateTimeFormat('da-DK').format(
-    new Date(`${date}T00:00:00`)
-    );
+      new Intl.DateTimeFormat('da-DK').format(
+        new Date(`${date}T00:00:00`)
+      );
 
-    // Prepare PDF data
+    // Prepare invoice data
     const invoiceData: InvoiceData = {
-    invoiceNumber: String(invoice.invoice_number),
-    invoiceDate: formatDate(invoice.invoice_date),
-    dueDate: formatDate(invoice.due_date),
+      invoiceNumber: String(invoice.invoice_number),
+      invoiceDate: formatDate(invoice.invoice_date),
+      dueDate: formatDate(invoice.due_date),
 
-    companyName,
-    cvr: cvr || '',
-    address: adresse,
-    postalCode: postnumber,
-    city,
+      companyName,
+      cvr: cvr || '',
+      address: adresse,
+      postalCode: postnumber,
+      city,
 
-    quantity: quantityValue,
-    isRepeatOrder,
+      quantity: quantityValue,
+      isRepeatOrder,
 
-    subtotal: subtotal_ore / 100,
-    vat: vat_ore / 100,
-    total: total_ore / 100,
+      subtotal: subtotal_ore / 100,
+      vat: vat_ore / 100,
+      total: total_ore / 100,
     };
 
     // Generate PDF
@@ -178,43 +215,44 @@ export async function POST(request: Request) {
       InvoiceDocument,
       { data: invoiceData }
     ) as unknown as Parameters<typeof renderToBuffer>[0];
-    
+
     const pdfBuffer = await renderToBuffer(pdfElement);
     const pdfPath = `${order_id}/invoice-${invoice_number}.pdf`;
 
+    // Upload PDF to Supabase Storage
     const { error: uploadError } = await supabaseAdmin.storage
-    .from('invoices')
-    .upload(pdfPath, pdfBuffer, {
+      .from('invoices')
+      .upload(pdfPath, pdfBuffer, {
         contentType: 'application/pdf',
         upsert: true,
-    });
+      });
 
     if (uploadError) {
-    console.error('PDF upload error:', uploadError);
+      console.error('PDF upload error:', uploadError);
 
-    return NextResponse.json(
+      return NextResponse.json(
         { error: 'Could not save invoice PDF.' },
         { status: 500 }
-    );
+      );
     }
 
     // Save PDF path in invoice record
     const { error: updateError } = await supabaseAdmin
-    .from('invoices')
-    .update({ pdf_path: pdfPath })
-    .eq('id', invoice_id);
+      .from('invoices')
+      .update({ pdf_path: pdfPath })
+      .eq('id', invoice_id);
 
     if (updateError) {
-    console.error('Invoice update error:', updateError);
+      console.error('Invoice update error:', updateError);
 
-    return NextResponse.json(
+      return NextResponse.json(
         { error: 'Could not update invoice record.' },
         { status: 500 }
-    );
+      );
     }
 
-    // Prepare email rows
-    const customerRows = [
+    // Prepare email data
+    const customerRows: [string, string][] = [
       ['Virksomhed', companyName],
       ['CVR-nummer', cvr || '-'],
       ['Adresse', adresse],
@@ -225,64 +263,42 @@ export async function POST(request: Request) {
       ['Telefon', phone || '-'],
     ];
 
-    const productRows = [
+    const productRows: [string, string][] = [
       ['Tekst på bordkilen', textKilen],
       ['Farve', color],
       ['Antal', `${quantityValue} stk.`],
-      ['Bestillingstype', isRepeatOrder ? 'Genbestilling' : 'Første bestilling'],
-      ['Stempelgebyr', formatPrice(isRepeatOrder ? 0 : 15000)],
+      [
+        'Bestillingstype',
+        isRepeatOrder ? 'Genbestilling' : 'Første bestilling',
+      ],
+      [
+        'Stempelgebyr',
+        formatPrice(isRepeatOrder ? 0 : 15000),
+      ],
       ['Pris pr. bordkile', '3,50 kr.'],
       ['Subtotal ekskl. moms', formatPrice(subtotal_ore)],
       ['Moms (25%)', formatPrice(vat_ore)],
       ['Pris i alt inkl. moms', formatPrice(total_ore)],
     ];
 
-    const renderRows = (rows: string[][]) =>
-      rows
-        .map(
-          ([label, value]) => `
-            <tr>
-              <td style="
-                padding: 12px 0;
-                border-bottom: 1px solid #EAE9E5;
-                color: #888888;
-                width: 42%;
-                vertical-align: top;
-              ">
-                ${escapeHtml(label)}
-              </td>
-              <td style="
-                padding: 12px 0;
-                border-bottom: 1px solid #EAE9E5;
-                color: #303B37;
-                font-weight: bold;
-                vertical-align: top;
-                word-break: break-word;
-              ">
-                ${escapeHtml(value)}
-              </td>
-            </tr>
-          `
-        )
-        .join('');
-
-    // Send notification to the seller
+    // Send order notification to seller
     let notificationSent = false;
 
     try {
       const { error: emailError } = await resend.emails.send({
-        from: 'Vipperbordet <noreply@greydot.dk>',
-        to: ['vipperbordet@greydot.dk'],
+        from: `${BRAND_NAME} <${SENDER_EMAIL}>`,
+        to: [CONTACT_EMAIL],
         replyTo: email,
-        subject: `Ny bestilling #${invoice_number} – Vipperbordet`,
+        subject: `Ny bestilling #${invoice_number} – ${BRAND_NAME}`,
         html: `
           <!DOCTYPE html>
           <html lang="da">
           <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Ny bestilling</title>
+            <title>Ny bestilling – ${BRAND_NAME}</title>
           </head>
+
           <body style="
             margin: 0;
             padding: 32px 16px;
@@ -304,8 +320,9 @@ export async function POST(request: Request) {
                           font-weight: bold;
                           letter-spacing: -1px;
                         ">
-                          Vipperbordet
+                          ${BRAND_NAME}
                         </div>
+
                         <div style="
                           margin-top: 8px;
                           color: #C8D0C8;
@@ -344,7 +361,8 @@ export async function POST(request: Request) {
                         </h1>
 
                         <p style="font-size: 14px; line-height: 1.7; color: #777;">
-                          Bestilling #${escapeHtml(invoice_number)} er modtaget via vipperbordet.dk.
+                          Bestilling #${escapeHtml(invoice_number)}
+                          er modtaget via vipperbordet.dk.
                         </p>
 
                         <h2 style="margin: 30px 0 14px; color: #122D28; font-size: 15px;">
@@ -381,6 +399,7 @@ export async function POST(request: Request) {
                           ">
                             Kommentar
                           </div>
+
                           <p style="
                             margin: 0;
                             color: #454C48;
@@ -410,7 +429,7 @@ export async function POST(request: Request) {
                       ">
                         <p style="margin: 0; color: #77736B; font-size: 11px;">
                           Denne besked er sendt automatisk fra
-                          <a href="https://vipperbordet.dk"
+                          <a href="${WEBSITE_URL}"
                             style="color: #122D28; text-decoration: none;">
                             vipperbordet.dk
                           </a>
@@ -428,7 +447,7 @@ export async function POST(request: Request) {
       });
 
       if (emailError) {
-        console.error('Resend error:', emailError);
+        console.error('Resend notification error:', emailError);
       } else {
         notificationSent = true;
       }
@@ -436,15 +455,15 @@ export async function POST(request: Request) {
       console.error('Notification email failed:', emailError);
     }
 
-    // Send example invoice to the customer
+    // Send invoice to customer
     let customerEmailSent = false;
 
     try {
       const { error: customerEmailError } = await resend.emails.send({
-        from: 'Vipperbordet <noreply@greydot.dk>',
+        from: `${BRAND_NAME} <${SENDER_EMAIL}>`,
         to: [email],
-        replyTo: 'vipperbordet@greydot.dk',
-        subject: `Eksempel på faktura #${invoice_number} – Vipperbordet`,
+        replyTo: CONTACT_EMAIL,
+        subject: `Faktura #${invoice_number} – ${BRAND_NAME}`,
         html: `
           <div style="
             max-width: 600px;
@@ -460,8 +479,9 @@ export async function POST(request: Request) {
               color: #F5F1E8;
             ">
               <h1 style="margin: 0; font-size: 25px;">
-                Vipperbordet
+                ${BRAND_NAME}
               </h1>
+
               <p style="
                 margin: 8px 0 0;
                 color: #C8D0C8;
@@ -479,37 +499,41 @@ export async function POST(request: Request) {
 
               <p style="font-size: 14px; line-height: 1.7;">
                 Hej ${escapeHtml(contactName)},<br><br>
-                Tak for jeres bestilling hos Vipperbordet.
-                Vi har vedhæftet en eksempel-faktura med
-                oplysninger om jeres bestilling.
-              </p>
-
-              <p style="
-                padding: 15px;
-                background: #F5F4F0;
-                font-size: 12px;
-                line-height: 1.6;
-              ">
-                <strong>Bemærk:</strong> Dette er en testfaktura.
-                Bankoplysningerne er ikke endelige, og dokumentet
-                skal ikke bruges til betaling.
+                Tak for jeres bestilling hos ${BRAND_NAME}.
+                Vi har vedhæftet fakturaen med oplysninger
+                om jeres bestilling.
               </p>
 
               <p style="font-size: 14px; line-height: 1.7;">
                 Har I spørgsmål, er I velkomne til at kontakte os
-                på vipperbordet@greydot.dk.
+                på
+                <a href="mailto:${CONTACT_EMAIL}" style="color: #122D28;">
+                  ${CONTACT_EMAIL}
+                </a>
+                eller på telefon ${CONTACT_PHONE}.
               </p>
 
               <p style="font-size: 14px;">
                 Med venlig hilsen<br>
-                <strong>Vipperbordet</strong>
+                <strong>${BRAND_NAME}</strong>
               </p>
+            </div>
+
+            <div style="
+              padding: 18px;
+              text-align: center;
+              color: #77736B;
+              font-size: 11px;
+            ">
+              <a href="${WEBSITE_URL}" style="color: #122D28;">
+                vipperbordet.dk
+              </a>
             </div>
           </div>
         `,
         attachments: [
           {
-            filename: `Eksempel-faktura-${invoice_number}.pdf`,
+            filename: `Faktura-${invoice_number}.pdf`,
             content: pdfBuffer.toString('base64'),
           },
         ],

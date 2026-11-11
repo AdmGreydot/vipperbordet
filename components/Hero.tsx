@@ -1,9 +1,14 @@
+import Image from 'next/image';
 import classes from './Hero.module.css';
 import Stats from './Stats';
 export default function Hero(){
     return (
         <section className={classes.hero}>
-            <img src="/hero.png" alt="Hero" />
+            <Image 
+            src="/hero.png" 
+            fill
+            alt="Hero"
+            priority />
             <div className="container">
                 <div className={classes.group}>
                     <div className={classes.accent}>Ups. Bordet vipper!</div>
