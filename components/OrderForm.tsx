@@ -1,12 +1,41 @@
 "use client";
 
-import { useState, useRef  } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import classes from './OrderForm.module.css';
 import Input from './controls/Input';
 import QuantityInput from './controls/QuantityInput';
-import Select from './controls/Select';
 import Textarea from './controls/Textarea';
+import DesignSection from './DesignSection/DesignSection';
+import { NewTextElement, TextElement } from '@/types/kile';
+type ExportDesign = () => Promise<Blob | null>;
+const elements = [
+    {
+        id: '1',
+        text: "Text",
+        fontSize: 44,
+    },
+];
 export default function OrderForm(){
+    const [layers, setLayers] = useState<TextElement[]>(elements);
+    const [color, setColor] = useState<string|null>('#000000');
+    const [exportDesign, setExportDesign] = useState<ExportDesign | null>(null);
+    const handleExportReady = useCallback((exportFn: ExportDesign) => {
+        setExportDesign(() => exportFn);
+    }, []);
+    
+    function handleUpdateLayer(updatedLayer: TextElement) {
+        setLayers(prev =>
+            prev.map(layer =>
+                layer.id === updatedLayer.id
+                    ? updatedLayer
+                    : layer
+            )
+        );
+    }
+    function handleAddLayer(layer: NewTextElement) {
+        const newLayer: TextElement = { ...layer, id: `exercise-${crypto.randomUUID()}` };
+        setLayers(prev => [...prev, newLayer]);
+    }
     const successRef = useRef<HTMLDivElement>(null);
     const [quantity, setQuantity] = useState(50);
     const step=10;
@@ -34,14 +63,12 @@ export default function OrderForm(){
         const city = formData.get("city") as string;
         const contactName = formData.get("contact_name") as string;
         const email = formData.get("email") as string;
-        const textKilen = formData.get("text_kilen") as string;
-        const color = formData.get("color") as string;
         const quantity = formData.get("quantity") as string;
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         let errorsArr:string[]=[];
         setIsSuccess(false);
         setErrors([]);
-        if(companyName.trim().length === 0 || contactName.trim().length === 0 || email.trim().length === 0 || textKilen.trim().length === 0 || color.trim().length === 0 || adresse.trim().length === 0 || postnumber.trim().length === 0 || city.trim().length === 0 || quantity.trim().length === 0){
+        if(companyName.trim().length === 0 || contactName.trim().length === 0 || email.trim().length === 0 || adresse.trim().length === 0 || postnumber.trim().length === 0 || city.trim().length === 0 || quantity.trim().length === 0){
             errorsArr.push('Du har ikke udfyldt alle obligatoriske felter.');
         }
         if (!emailRegex.test(email)) {
@@ -61,28 +88,46 @@ export default function OrderForm(){
             return;
         }
         setIsLoading(true);
-        const data = {
-            companyName,
-            contactName,
-            email,
-            adresse,
-            postnumber,
-            city,
-            cvr: formData.get("cvr") as string,
-            phone: formData.get("phone") as string,
-            textKilen,
-            color,
-            quantity: quantityValue,
-            isRepeatOrder,
-            kommentar: formData.get("kommentar") as string,
-        }
+
         try {
+            const designImage = await exportDesign?.();
+
+            if (!designImage) {
+                throw new Error('Could not export design image');
+            }
+
+            const data = {
+                companyName,
+                contactName,
+                email,
+                adresse,
+                postnumber,
+                city,
+                cvr: formData.get("cvr") as string,
+                phone: formData.get("phone") as string,
+            
+                design: {
+                    color,
+                    layers,
+                    canvas: {
+                        width: 590,
+                        height: 226,
+                        physicalWidth: 47,
+                        physicalHeight: 18,
+                    },
+                },
+            
+                quantity: quantityValue,
+                isRepeatOrder,
+                kommentar: formData.get("kommentar") as string,
+            };
+            const requestData = new FormData();
+
+            requestData.append('data', JSON.stringify(data));
+            requestData.append('designImage', designImage, 'design-preview.png');
             const response = await fetch('/api/orders', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data),
+                body: requestData,
             });
             
             const result = await response.json();
@@ -106,6 +151,8 @@ export default function OrderForm(){
             form.reset();
             setQuantity(50);
             setIsRepeatOrder(false);
+            setLayers(elements);
+            setColor('#000000');
             setTimeout(() => {
                 successRef.current?.scrollIntoView({
                     behavior: 'smooth',
@@ -138,94 +185,80 @@ export default function OrderForm(){
                         <h2 id="bestil">Bestil jeres bordkiler</h2>
                         <p>Vælg farve, tekst og antal – så er I klar til bestilling.</p>
                     </div>
+                    
                     <form onSubmit={submitHandler}>
-                        {errors.length > 0 && (
-                            <div className={classes.errors}>
-                                {errors.map((error) => (
-                                    <p key={error}>{error}</p>
-                                ))}
+                            {errors.length > 0 && (
+                                <div className={classes.errors}>
+                                    {errors.map((error) => (
+                                        <p key={error}>{error}</p>
+                                    ))}
+                                </div>
+                            )}
+                            {isSuccess && (
+                            <div ref={successRef} className={classes.success}>
+                                <p className={classes.successTitle}>Tak for jeres bestilling!</p>
+                                <p>Vi har modtaget jeres bestilling. I modtager snart en faktura via e-mail.</p>
                             </div>
-                        )}
-                        {isSuccess && (
-                        <div ref={successRef} className={classes.success}>
-                            <p className={classes.successTitle}>Tak for jeres bestilling!</p>
-                            <p>Vi har modtaget jeres bestilling. I modtager snart en faktura via e-mail.</p>
-                        </div>
-                        )}
-                        
-                        <div className={classes.row}>
-                            <Input label="Navn på virksomhed" type="text" name="company_name" required/>
-                            <Input label="CVR-nummer" type="text" name="cvr"/>
-                        </div>
-                        <Input label="Virksomhedens adresse" type="text" name="adresse" required/>
-                        <div className={classes.row}>
-                            <Input label="Postnummer" type="text" name="postnumber" required/>
-                            <Input label="By" type="text" name="city" required/>
-                        </div>
-                        <div className={classes.row}>
-                            <Input label="Kontaktperson" type="text" name="contact_name" required/>
-                            <Input label="Telefon" type="tel" name="phone"/>
-                        </div>
-                        <Input label="E-mail" type="email" name="email" required/>
-                        <Input label="Tekst på bordkilen( fx. jeres navn)" type="text" name="text_kilen" required/>
-                        <div className={classes.row}>
-                            <Select 
-                                label="Farve"
-                                name="color"
-                                required
-                                defaultValue=''
-                                placeholder='Vælg en farve'
-                                options={
-                                    [
-                                        {
-                                            value:"black",
-                                            label:"Sort"
-                                        },
-                                        {
-                                            value:"blue",
-                                            label:"Blå"
-                                        },
-                                        {
-                                            value:"green",
-                                            label:"Grøn"
-                                        },
-                                        {
-                                            value:"red",
-                                            label:"Rød"
-                                        },
-                                    ]
-                                }
-                            />
-                            <QuantityInput label="Antal" required name="quantity" quantity={quantity} increase={increase} decrease={decrease} addQuantity={addQuantity}/>
-                        </div>
-                        <Textarea label="Kommentar" name='kommentar'/>
-                        <fieldset className={classes.orderType}>
-                            <legend>Er dette en genbestilling?</legend>
-
+                            )}
+                        <div className={classes.layout}>
+                           
+                            
                             <div className={classes.row}>
-                                <label className={classes.radioOption}>
-                                    <input
-                                        type="radio"
-                                        name="order"
-                                        value="first"
-                                        checked={!isRepeatOrder}
-                                        onChange={() => setIsRepeatOrder(false)}
-                                    />
-                                    <span>Nej, det er vores første bestilling</span>
-                                </label>
-
-                                <label className={classes.radioOption}>
-                                    <input
-                                        type="radio"
-                                        name="order"
-                                        value="repeat"
-                                        checked={isRepeatOrder}
-                                        onChange={() => setIsRepeatOrder(true)}
-                                    />
-                                    <span>Ja, det er en genbestilling</span>
-                                </label>
+                                <Input label="Navn på virksomhed" type="text" name="company_name" required/>
+                                <Input label="CVR-nummer" type="text" name="cvr"/>
                             </div>
-                        </fieldset>
+                            <Input label="Virksomhedens adresse" type="text" name="adresse" required/>
+                            <div className={classes.row}>
+                                <Input label="Postnummer" type="text" name="postnumber" required/>
+                                <Input label="By" type="text" name="city" required/>
+                            </div>
+                            <div className={classes.row}>
+                                <Input label="Kontaktperson" type="text" name="contact_name" required/>
+                                <Input label="Telefon" type="tel" name="phone"/>
+                            </div>
+                            <Input label="E-mail" type="email" name="email" required/>
+                            
+                            <div className={classes.row}>
+                                
+                                <QuantityInput label="Antal" required name="quantity" quantity={quantity} increase={increase} decrease={decrease} addQuantity={addQuantity}/>
+                            </div>
+                            <Textarea label="Kommentar" name='kommentar'/>
+                            <fieldset className={classes.orderType}>
+                                <legend>Er dette en genbestilling?</legend>
+
+                                <div className={classes.row}>
+                                    <label className={classes.radioOption}>
+                                        <input
+                                            type="radio"
+                                            name="order"
+                                            value="first"
+                                            checked={!isRepeatOrder}
+                                            onChange={() => setIsRepeatOrder(false)}
+                                        />
+                                        <span>Nej, det er vores første bestilling</span>
+                                    </label>
+
+                                    <label className={classes.radioOption}>
+                                        <input
+                                            type="radio"
+                                            name="order"
+                                            value="repeat"
+                                            checked={isRepeatOrder}
+                                            onChange={() => setIsRepeatOrder(true)}
+                                        />
+                                        <span>Ja, det er en genbestilling</span>
+                                    </label>
+                                </div>
+                            </fieldset>
+                        </div>
+                        <DesignSection 
+                            layers={layers} 
+                            color={color ?? '#000000'} 
+                            onChangeLayer={handleUpdateLayer}
+                            onChangeColor={setColor}
+                            onAddLayer={handleAddLayer}
+                            onExportReady={handleExportReady}
+                            />
                         <div className={classes.footer}>
                             <div className={classes.pris}>
                                 <div>

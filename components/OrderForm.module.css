@@ -1,11 +1,10 @@
-.formWrapper{
-    background-color: var(--background-form);
-    border-radius: 10px;
-    padding: 50px 110px;
-}
 .button:disabled,
 .button[disabled]{
   opacity: .7;
+}
+.bestil{
+  padding: 70px 0;
+  background-color: var(--background-form);
 }
 .head{
     text-align: center;
@@ -27,6 +26,31 @@
   border-top:1px solid var(--border);
   margin-bottom: 20px;
 
+}
+.layout{
+  margin: 50px 0 30px;
+  padding: 40px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
+  position: relative;
+}
+.layout::before{
+  content: 'Kontakt Oplysninger';
+  position: absolute;
+  background-color: var(--background-form);
+  padding: 0 10px;
+  top: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--font-kalam), cursive;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 100%;
+  color: var(--accent);
+}
+.layout :global(.control){
+  margin-bottom: 15px;
 }
 .footer{
     margin-top: 39px;
@@ -90,7 +114,7 @@
   gap: 12px;
   padding: 14px 16px;
   border-radius: 10px;
-  background: #F5F1E8;
+  background: var(--input-bg);
   border: 1px solid transparent;
   cursor: pointer;
   transition: background 0.2s ease, border-color 0.2s ease;
@@ -120,8 +144,8 @@
   );
 }
 .radioOption:has(input:checked) {
-  background: #EAF0DF;
-  border-color: #EAF0DF;
+  background: #C9D0BD;
+  border-color: #C9D0BD;
 }
 
 .radioOption:hover {

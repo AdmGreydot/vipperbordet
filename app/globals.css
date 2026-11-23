@@ -1,10 +1,11 @@
 :root {
   --background: #F1EAE1;
-  --background-form: #E9E4DA;
+  --background-form: #ede2d7;
+  --input-bg: #F5EEE7;
   --text: #171717;
   --accent: #122D28;
   --white:#fff;
-  --border:#A0ABA9;
+  --border:#C8BDB1;
 }
 *,
 *::before,
@@ -80,6 +81,10 @@ h4 {
   font-size: 24px;
   line-height: 100%;
 }
+h6 {
+  font-size: 18px;
+  line-height: 100%;
+}
 .container {
   max-width: 1340px;
   width: 100%;
@@ -114,8 +119,15 @@ section:last-of-type{
   color: var(--accent);
 }
 
+.btn-outline{
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  background-color: transparent;
+}
+
 .btn:hover{
   background: #1B4039;
+  color: var(--white);
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(18, 45, 40, 0.18);
 }
@@ -140,7 +152,9 @@ input:-webkit-autofill:active {
     caret-color: #122D28;
     transition: background-color 9999s ease-in-out 0s;
 }
-
+.control{
+  margin-bottom: 37px;
+}
 @media (max-width: 800px) {
   section{
     margin-bottom: 60px;

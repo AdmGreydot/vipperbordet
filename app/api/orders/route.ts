@@ -7,6 +7,7 @@ import { renderToBuffer } from '@react-pdf/renderer';
 import InvoiceDocument, {
   type InvoiceData,
 } from '@/lib/invoice/InvoiceDocument';
+import { TextElement } from '@/types/kile';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -61,7 +62,20 @@ const renderRows = (rows: [string, string][]) =>
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
+    const formData = await request.formData();
+
+    const dataString = formData.get('data');
+    const designImage = formData.get('designImage');
+
+    if (typeof dataString !== 'string') {
+        return NextResponse.json(
+            { error: 'Invalid order data.' },
+            { status: 400 }
+        );
+    }
+
+    const body = JSON.parse(dataString);
+
 
     const {
       companyName,
@@ -72,11 +86,10 @@ export async function POST(request: Request) {
       city,
       cvr,
       phone,
-      textKilen,
-      color,
       quantity,
       isRepeatOrder,
       kommentar,
+      design,
     } = body;
 
     // Validate required fields
@@ -87,8 +100,6 @@ export async function POST(request: Request) {
       adresse,
       postnumber,
       city,
-      textKilen,
-      color,
     ];
 
     if (
@@ -130,6 +141,32 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
+    if (
+      !design ||
+      typeof design !== 'object' ||
+      typeof design.color !== 'string' ||
+      !Array.isArray(design.layers) ||
+      design.layers.length === 0
+  ) {
+      return NextResponse.json(
+          { error: 'Invalid design.' },
+          { status: 400 }
+      );
+  }
+  if (
+      !designImage ||
+      typeof designImage === 'string' ||
+      designImage.type !== 'image/png'
+  ) {
+      return NextResponse.json(
+          { error: 'Invalid design image.' },
+          { status: 400 }
+      );
+  }
+
+  const designImageBase64 = Buffer.from(
+      await designImage.arrayBuffer()
+  ).toString('base64');
 
     // Create order and invoice in Supabase
     const { data: orderResult, error: orderError } =
@@ -143,11 +180,10 @@ export async function POST(request: Request) {
           city: city.trim(),
           cvr: cvr || '',
           phone: phone || '',
-          textKilen: textKilen.trim(),
-          color,
           quantity: quantityValue,
           isRepeatOrder,
           kommentar: kommentar || '',
+          design,
         },
       });
 
@@ -264,8 +300,6 @@ export async function POST(request: Request) {
     ];
 
     const productRows: [string, string][] = [
-      ['Tekst på bordkilen', textKilen],
-      ['Farve', color],
       ['Antal', `${quantityValue} stk.`],
       [
         'Bestillingstype',
@@ -280,7 +314,19 @@ export async function POST(request: Request) {
       ['Moms (25%)', formatPrice(vat_ore)],
       ['Pris i alt inkl. moms', formatPrice(total_ore)],
     ];
-
+    const designRows: [string, string][] = [
+      ['Farve', design.color],
+      ...design.layers.map((layer:TextElement, index:number) => [
+        `Tekst ${index + 1}`,
+        [
+          layer.text,
+          `Font: ${layer.fontFamily || 'Default'}`,
+          `Størrelse: ${layer.fontSize || '-'}`,
+          `Format: ${layer.style?.join(', ') || 'Normal'}`,
+          `Position: X ${layer.x ?? 0}, Y ${layer.y ?? 0}`,
+        ].join(' | '),
+      ]),
+    ];
     // Send order notification to seller
     let notificationSent = false;
 
@@ -382,6 +428,32 @@ export async function POST(request: Request) {
                           cellspacing="0" style="font-size: 13px;">
                           ${renderRows(productRows)}
                         </table>
+                        <h2 style="margin: 30px 0 14px; color: #122D28; font-size: 15px;">
+                          Design af bordkile
+                        </h2>
+                        <div style="
+                            margin-bottom: 20px;
+                            padding: 20px;
+                            background-color: #F5F4F0;
+                            text-align: center;
+                        ">
+                            <img
+                                src="cid:design-preview"
+                                alt="Design af bordkile"
+                                width="590"
+                                style="
+                                    display: block;
+                                    width: 100%;
+                                    max-width: 590px;
+                                    height: auto;
+                                    margin: 0 auto;
+                                "
+                            />
+                        </div>
+                        <table role="presentation" width="100%" cellpadding="0"
+                          cellspacing="0" style="font-size: 13px;">
+                          ${renderRows(designRows)}
+                        </table>
 
                         <div style="
                           margin-top: 30px;
@@ -444,6 +516,14 @@ export async function POST(request: Request) {
           </body>
           </html>
         `,
+        attachments: [
+          {
+              filename: 'design-preview.png',
+              content: designImageBase64,
+              contentType: 'image/png',
+              contentId: 'design-preview',
+          },
+        ],
       });
 
       if (emailError) {

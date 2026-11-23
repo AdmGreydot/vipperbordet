@@ -4,7 +4,7 @@ type TextareaProps = {
 } & React.TextareaHTMLAttributes<HTMLTextAreaElement>  & React.RefAttributes<HTMLTextAreaElement>;
 export default function Textarea({label, required, ...props}:TextareaProps){
     return (
-        <div className={classes.control}>
+        <div className={`control ${classes.control}`}>
           <label>
             <span>
               {label}

@@ -4,7 +4,7 @@ type InputProps = {
 } & React.InputHTMLAttributes<HTMLInputElement> & React.RefAttributes<HTMLInputElement>;
 export default function Input({label, required, ...props}:InputProps){
     return (
-        <div className={classes.control}>
+        <div className={`control ${classes.control}`}>
           <label>
             <span>
               {label}

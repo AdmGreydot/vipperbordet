@@ -11,7 +11,7 @@ type InputProps = {
 
 export default function QuantityInput({label, required, name, quantity, increase, decrease, addQuantity}:InputProps) {
   return (
-    <div className={classes.control}>
+    <div className={`control ${classes.control}`}>
         <label>
             <span>
               {label}

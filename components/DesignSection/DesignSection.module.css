@@ -1,0 +1,106 @@
+.row{
+    display: grid;
+    flex-direction: column;
+    grid-template-columns: repeat(2, minmax(0,1fr));
+    gap: 15px;
+    margin-bottom: 37px;
+}
+.nav{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 5px;
+    gap: 12px;
+    padding: 10px 10px;
+    border-radius: 10px;
+    background: unset;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease;
+    width: 100%;
+    margin-bottom: 10px;
+}
+.nav:hover{
+    background: #C9D0BD;
+    border-color: #C9D0BD;
+}
+.navActive{
+    background: #C9D0BD;
+    border-color: #C9D0BD;
+    color: var(--accent);
+    font-weight: 700;
+}
+.layout{
+    margin: 50px 0 30px;
+    padding: 40px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
+    position: relative;
+    display: flex;
+
+    gap: 30px;
+}
+.column{
+    flex: 1;
+}
+.layout::before{
+    content: 'Design jeres bordkile';
+    position: absolute;
+    background-color: var(--background-form);
+    padding: 0 10px;
+    top: -14px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: var(--font-kalam), cursive;
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 100%;
+    color: var(--accent);
+}
+.layout :global(.control){
+    margin-bottom: 15px;
+}
+.colorOption span{
+    width: 24px;
+    height: 24px;
+    border-radius: 100%;
+    margin-right: 5px;
+}
+.colorOption{
+    display: flex;
+    align-items: center;
+}
+.textStyles{
+    display: flex;
+    gap: 5px;
+    align-items: flex-end;
+}
+.textStyles :global(.control){
+    margin-bottom: 0;
+}
+.textStyles button{
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3px;
+    border-radius: 5px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    background: transparent;
+    transition: background .2s, border-color .2s;
+}
+.textStyles button:hover, .textStyles .activeStyle{
+    color: var(--accent);
+    background: #eaf0df;
+    border-color: var(--accent);
+}
+.canvasWrap{
+    height: 226px;
+}
+.navButton{
+    width: 100%;
+    margin-top: 20px;
+}
