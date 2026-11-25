@@ -153,18 +153,19 @@ export default function OrderForm(){
             setIsRepeatOrder(false);
             setLayers(elements);
             setColor('#000000');
-            setTimeout(() => {
-                successRef.current?.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'center',
-                });
-            }, 100);
+            
 
         } catch (error) {
             setErrors(['Der opstod en fejl. Prøv venligst igen, eller kontakt os direkte på email.']);
             console.error('Failed to send email:', error);
         } finally{
             setIsLoading(false);
+            setTimeout(() => {
+                successRef.current?.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center',
+                });
+            }, 100);
         }
     }
     function calculatePrise(){

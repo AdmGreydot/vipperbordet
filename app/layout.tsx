@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import { Kalam, Libertinus_Serif } from "next/font/google";
 import "./globals.css";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
 
 const kalamFont = Kalam({
   weight:"700",
@@ -25,9 +23,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="da" className={`${kalamFont.variable} ${libertinusSerif.variable}`}>
       <body>
-        <Header/>
         {children}
-        <Footer/>
       </body>
     </html>
   );

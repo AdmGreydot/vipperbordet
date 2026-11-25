@@ -1,6 +1,7 @@
 
 import { Resend } from 'resend';
 import React from 'react';
+import { stripe } from '@/lib/stripe';
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { renderToBuffer } from '@react-pdf/renderer';
@@ -286,6 +287,28 @@ export async function POST(request: Request) {
         { status: 500 }
       );
     }
+    const checkoutSession = await stripe.checkout.sessions.create({
+      mode: 'payment',
+      line_items: [
+          {
+              price_data: {
+                  currency: 'dkk',
+                  product_data: {
+                      name: `Bordkiler – ordre #${invoice_number}`,
+                  },
+                  unit_amount: total_ore,
+              },
+              quantity: 1,
+          },
+      ],
+      metadata: {
+          order_id: String(order_id),
+          invoice_id: String(invoice_id),
+          invoice_number: String(invoice_number),
+      },
+      success_url: `${WEBSITE_URL}/betaling-bekraeftet`,
+      cancel_url: `${WEBSITE_URL}/betaling-annulleret`,
+    });
 
     // Prepare email data
     const customerRows: [string, string][] = [
@@ -583,7 +606,22 @@ export async function POST(request: Request) {
                 Vi har vedhæftet fakturaen med oplysninger
                 om jeres bestilling.
               </p>
-
+              <div style="margin: 30px 0; text-align: center;">
+                <a
+                  href="${checkoutSession.url}"
+                  style="
+                    display: inline-block;
+                    padding: 16px 32px;
+                    background-color: #122D28;
+                    color: #F5F1E8;
+                    text-decoration: none;
+                    font-size: 15px;
+                    font-weight: bold;
+                  "
+                >
+                  Betal faktura
+                </a>
+              </div>
               <p style="font-size: 14px; line-height: 1.7;">
                 Har I spørgsmål, er I velkomne til at kontakte os
                 på
