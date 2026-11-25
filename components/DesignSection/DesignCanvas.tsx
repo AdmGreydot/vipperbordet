@@ -99,7 +99,9 @@ export default function DesignCanvas({
             stage.batchDraw();
     
             return await new Promise((resolve) => {
-                stage.toCanvas().toBlob((blob) => {
+                stage.toCanvas({
+                    pixelRatio: 1 / scale,
+                }).toBlob((blob) => {
                     resolve(blob);
                 }, 'image/png');
             });
@@ -112,158 +114,183 @@ export default function DesignCanvas({
     useEffect(() => {
         onExportReady(exportDesign);
     }, [onExportReady, layers, color]);
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [scale, setScale] = useState(1);
+
+    useEffect(() => {
+        const container = containerRef.current;
+        if (!container) return;
+
+        const observer = new ResizeObserver(([entry]) => {
+            const newScale = Math.min(1, entry.contentRect.width / width);
+            setScale(newScale);
+        });
+
+        observer.observe(container);
+
+        return () => observer.disconnect();
+    }, []);
     return (
-        <Stage
-            width={width}
-            height={height}
-            onMouseDown={(e) => {
-                const clickedOnEmpty =
-                    e.target === e.target.getStage() ||
-                    e.target.name() === 'canvas-background';
-
-                if (clickedOnEmpty) {
-                    setIsClickedOnEmpty(true);
-                }
-            }}
-            onTouchStart={(e) => {
-                const clickedOnEmpty =
-                    e.target === e.target.getStage() ||
-                    e.target.name() === 'canvas-background';
-
-                if (clickedOnEmpty) {
-                    setIsClickedOnEmpty(true);
-                }
+        <div
+            ref={containerRef}
+            style={{
+                width: '100%',
+                height: height * scale,
+                position: 'relative',
             }}
         >
-            <Layer ref={layerRef}>
-                <Rect
-                    name="canvas-background"
-                    width={width}
-                    height={height}
-                    fill="#F1EAE1"
-                    stroke="#122D28"
-                    strokeWidth={1}
-                    dash={[5, 5]}
-                    listening
-                />
-
-                {layers.map((layer) => {
-                    const fontSize = layer.fontSize ?? 24;
-                    const defaultY = currentY + fontSize / 2;
-                    const selectedFont = DESIGN_FONTS.find(
-                        (font) => font.value === layer.fontFamily
-                    );
-
-                    currentY += fontSize + lineGap;
-
-                    return (
-                        <Text
-                            key={layer.id}
-                            ref={(node) => {
-                                textRefs.current[layer.id] = node;
-
-                                if (node) {
-                                    node.offsetX(node.width() / 2);
-                                    node.offsetY(node.height() / 2);
+            <Stage
+                width={width * scale}
+                height={height * scale}
+                scale={{ x: scale, y: scale }}
+                onMouseDown={(e) => {
+                    const clickedOnEmpty =
+                        e.target === e.target.getStage() ||
+                        e.target.name() === 'canvas-background';
+    
+                    if (clickedOnEmpty) {
+                        setIsClickedOnEmpty(true);
+                    }
+                }}
+                onTouchStart={(e) => {
+                    const clickedOnEmpty =
+                        e.target === e.target.getStage() ||
+                        e.target.name() === 'canvas-background';
+    
+                    if (clickedOnEmpty) {
+                        setIsClickedOnEmpty(true);
+                    }
+                }}
+            >
+                <Layer ref={layerRef}>
+                    <Rect
+                        name="canvas-background"
+                        width={width}
+                        height={height}
+                        fill="#F1EAE1"
+                        stroke="#122D28"
+                        strokeWidth={1}
+                        dash={[5, 5]}
+                        listening
+                    />
+    
+                    {layers.map((layer) => {
+                        const fontSize = layer.fontSize ?? 24;
+                        const defaultY = currentY + fontSize / 2;
+                        const selectedFont = DESIGN_FONTS.find(
+                            (font) => font.value === layer.fontFamily
+                        );
+    
+                        currentY += fontSize + lineGap;
+    
+                        return (
+                            <Text
+                                key={layer.id}
+                                ref={(node) => {
+                                    textRefs.current[layer.id] = node;
+    
+                                    if (node) {
+                                        node.offsetX(node.width() / 2);
+                                        node.offsetY(node.height() / 2);
+                                    }
+                                }}
+                                text={layer.text}
+                                x={layer.x ?? width / 2}
+                                y={layer.y ?? defaultY}
+                                fontSize={fontSize}
+                                fontFamily={selectedFont?.fontFamily ?? 'Arial'}
+                                fontStyle={
+                                    [
+                                        layer.style?.includes('bold') ? 'bold' : '',
+                                        layer.style?.includes('italic') ? 'italic' : '',
+                                    ]
+                                        .filter(Boolean)
+                                        .join(' ') || 'normal'
                                 }
-                            }}
-                            text={layer.text}
-                            x={layer.x ?? width / 2}
-                            y={layer.y ?? defaultY}
-                            fontSize={fontSize}
-                            fontFamily={selectedFont?.fontFamily ?? 'Arial'}
-                            fontStyle={
-                                [
-                                    layer.style?.includes('bold') ? 'bold' : '',
-                                    layer.style?.includes('italic') ? 'italic' : '',
-                                ]
-                                    .filter(Boolean)
-                                    .join(' ') || 'normal'
+                                textDecoration={
+                                    layer.style?.includes('underline') ? 'underline' : ''
+                                }
+                                fill={color ?? '#000000'}
+                                align="center"
+                                draggable
+                                onClick={() => handleChangeLayer(layer.id)}
+                                onTap={() => handleChangeLayer(layer.id)}
+                                onDragMove={(e) => {
+                                    const node = e.target;
+    
+                                    const halfWidth = node.width() / 2;
+                                    const halfHeight = node.height() / 2;
+    
+                                    node.x(
+                                        Math.max(
+                                            halfWidth,
+                                            Math.min(width - halfWidth, node.x())
+                                        )
+                                    );
+    
+                                    node.y(
+                                        Math.max(
+                                            halfHeight,
+                                            Math.min(height - halfHeight, node.y())
+                                        )
+                                    );
+                                }}
+                                onDragEnd={(e) => {
+                                    onUpdateLayer({
+                                        ...layer,
+                                        x: e.target.x(),
+                                        y: e.target.y(),
+                                    });
+                                }}
+                                onTransformEnd={(e) => {
+                                    const node = e.target;
+                                    const scaleX = node.scaleX();
+    
+                                    const newFontSize = Math.max(
+                                        6,
+                                        Math.round(fontSize * scaleX)
+                                    );
+    
+                                    node.scaleX(1);
+                                    node.scaleY(1);
+    
+                                    onUpdateLayer({
+                                        ...layer,
+                                        x: node.x(),
+                                        y: node.y(),
+                                        fontSize: newFontSize,
+                                    });
+                                }}
+                            />
+                        );
+                    })}
+    
+                    <Transformer
+                        ref={transformerRef}
+                        rotateEnabled={true}
+                        keepRatio
+                        enabledAnchors={[
+                            'top-left',
+                            'top-right',
+                            'bottom-left',
+                            'bottom-right',
+                        ]}
+                        boundBoxFunc={(oldBox, newBox) => {
+                            const isOutside =
+                                newBox.x < 0 ||
+                                newBox.y < 0 ||
+                                newBox.x + newBox.width > width ||
+                                newBox.y + newBox.height > height;
+    
+                            if (isOutside || newBox.width < 10 || newBox.height < 10) {
+                                return oldBox;
                             }
-                            textDecoration={
-                                layer.style?.includes('underline') ? 'underline' : ''
-                            }
-                            fill={color ?? '#000000'}
-                            align="center"
-                            draggable
-                            onClick={() => handleChangeLayer(layer.id)}
-                            onTap={() => handleChangeLayer(layer.id)}
-                            onDragMove={(e) => {
-                                const node = e.target;
-
-                                const halfWidth = node.width() / 2;
-                                const halfHeight = node.height() / 2;
-
-                                node.x(
-                                    Math.max(
-                                        halfWidth,
-                                        Math.min(width - halfWidth, node.x())
-                                    )
-                                );
-
-                                node.y(
-                                    Math.max(
-                                        halfHeight,
-                                        Math.min(height - halfHeight, node.y())
-                                    )
-                                );
-                            }}
-                            onDragEnd={(e) => {
-                                onUpdateLayer({
-                                    ...layer,
-                                    x: e.target.x(),
-                                    y: e.target.y(),
-                                });
-                            }}
-                            onTransformEnd={(e) => {
-                                const node = e.target;
-
-                                const scaleX = node.scaleX();
-
-                                const newFontSize = Math.max(
-                                    6,
-                                    Math.round(fontSize * scaleX)
-                                );
-
-                                node.scaleX(1);
-                                node.scaleY(1);
-
-                                onUpdateLayer({
-                                    ...layer,
-                                    x: node.x(),
-                                    y: node.y(),
-                                    fontSize: newFontSize,
-                                });
-                            }}
-                        />
-                    );
-                })}
-
-                <Transformer
-                    ref={transformerRef}
-                    rotateEnabled={true}
-                    keepRatio
-                    enabledAnchors={[
-                        'top-left',
-                        'top-right',
-                        'bottom-left',
-                        'bottom-right',
-                    ]}
-                    boundBoxFunc={(oldBox, newBox) => {
-                        const isOutside =
-                            newBox.x < 0 ||
-                            newBox.y < 0 ||
-                            newBox.x + newBox.width > width ||
-                            newBox.y + newBox.height > height;
-
-                        if (isOutside || newBox.width < 10 || newBox.height < 10) {
-                            return oldBox;
-                        }
-
-                        return newBox;
-                    }}
-                />
-            </Layer>
-        </Stage>
+    
+                            return newBox;
+                        }}
+                    />
+                </Layer>
+            </Stage>
+        </div>
     );
 }

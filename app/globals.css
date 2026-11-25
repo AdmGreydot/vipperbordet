@@ -155,6 +155,7 @@ input:-webkit-autofill:active {
 .control{
   margin-bottom: 37px;
 }
+
 @media (max-width: 800px) {
   section{
     margin-bottom: 60px;

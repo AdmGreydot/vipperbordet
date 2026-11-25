@@ -100,10 +100,21 @@
 }
 .canvasWrap{
     height: 226px;
+    
 }
 .navButton{
     width: 100%;
     margin-top: 20px;
     padding-left: 7px;
     padding-right: 7px;
+}
+@media (max-width: 730px) {
+    .canvasWrap{
+        height: auto;
+        width: 100%;
+        min-width: 0;
+        overflow: hidden;
+        position: relative;
+        
+    }
 }
