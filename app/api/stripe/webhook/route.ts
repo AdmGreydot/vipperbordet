@@ -36,7 +36,9 @@ export async function POST(request: Request) {
         event.type === 'checkout.session.async_payment_succeeded'
     ) {
         const session = event.data.object as Stripe.Checkout.Session;
-
+        if (session.metadata?.site !== 'vipperbordet') {
+            return NextResponse.json({ received: true });
+        }
         if (session.payment_status !== 'paid') {
             return NextResponse.json({ received: true });
         }

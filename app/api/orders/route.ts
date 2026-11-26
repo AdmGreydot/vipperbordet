@@ -289,6 +289,7 @@ export async function POST(request: Request) {
     }
     const checkoutSession = await stripe.checkout.sessions.create({
       mode: 'payment',
+      customer_email: email,
       line_items: [
           {
               price_data: {
@@ -305,6 +306,7 @@ export async function POST(request: Request) {
           order_id: String(order_id),
           invoice_id: String(invoice_id),
           invoice_number: String(invoice_number),
+          site: 'vipperbordet',
       },
       success_url: `${WEBSITE_URL}/betaling-bekraeftet`,
       cancel_url: `${WEBSITE_URL}/betaling-annulleret`,
